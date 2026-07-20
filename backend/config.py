@@ -5,7 +5,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env")
+PROJECT_ROOT = BASE_DIR.parent
+
+# Single project-wide .env at the repo root is the source of truth. A
+# backend-local .env still wins if present (for per-service overrides).
+load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(BASE_DIR / ".env", override=True)
 
 # --- Storage paths (all inside the repo) ---
 STORAGE_DIR = BASE_DIR / "storage"

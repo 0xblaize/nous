@@ -10,12 +10,17 @@ from __future__ import annotations
 import asyncio
 import io
 from pathlib import Path
+from typing import Awaitable, Callable
 
 import config
 
 
 class AudioSynthesisError(RuntimeError):
     """Raised when TTS could not produce any audio after retries."""
+
+
+# An async progress hook: on_progress(done, total) is awaited after each line.
+ProgressHook = Callable[[int, int], Awaitable[None]]
 
 
 async def _tts_bytes(text: str, voice: str, attempts: int = 4) -> bytes:
@@ -39,13 +44,18 @@ async def _tts_bytes(text: str, voice: str, attempts: int = 4) -> bytes:
     raise AudioSynthesisError(f"TTS failed for a line after {attempts} attempts: {last_exc}")
 
 
-async def _synthesize_async(dialogue: list[dict], out_path: Path) -> None:
+async def _synthesize_async(
+    dialogue: list[dict],
+    out_path: Path,
+    on_progress: ProgressHook | None = None,
+) -> None:
     from pydub import AudioSegment
 
     combined = AudioSegment.silent(duration=300)
     gap = AudioSegment.silent(duration=250)  # small breath between lines
+    total = len(dialogue)
 
-    for line in dialogue:
+    for i, line in enumerate(dialogue, start=1):
         voice = (
             config.HOST_A_VOICE
             if line["speaker"] == "HOST_A"
@@ -54,8 +64,28 @@ async def _synthesize_async(dialogue: list[dict], out_path: Path) -> None:
         mp3_bytes = await _tts_bytes(line["text"], voice)
         segment = AudioSegment.from_file(io.BytesIO(mp3_bytes), format="mp3")
         combined += segment + gap
+        if on_progress is not None:
+            await on_progress(i, total)
 
     combined.export(out_path, format="mp3")
+
+
+async def synthesize_async(
+    dialogue: list[dict],
+    episode_id: str,
+    on_progress: ProgressHook | None = None,
+) -> Path:
+    """Async render — call this from code that already runs in an event loop
+    (e.g. the WebSocket handler). Awaits `on_progress(done, total)` per line so
+    callers can stream live TTS progress.
+
+    Raises AudioSynthesisError if no audio could be produced.
+    """
+    out_path = config.AUDIO_DIR / f"{episode_id}.mp3"
+    await _synthesize_async(dialogue, out_path, on_progress)
+    if not out_path.exists() or out_path.stat().st_size == 0:
+        raise AudioSynthesisError("No audio file was produced.")
+    return out_path
 
 
 def synthesize(dialogue: list[dict], episode_id: str) -> Path:
@@ -63,7 +93,7 @@ def synthesize(dialogue: list[dict], episode_id: str) -> Path:
 
     Runs its own event loop via asyncio.run(), so call it from a plain thread
     (e.g. FastAPI's threadpool via asyncio.to_thread), never from inside a
-    running loop.
+    running loop. For code already inside a loop, use synthesize_async().
 
     Raises AudioSynthesisError if no audio could be produced.
     """

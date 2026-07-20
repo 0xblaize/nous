@@ -67,8 +67,31 @@ Open <http://localhost:3000>. The frontend proxies `/api/*` to the backend
 |--------|--------------------|------------------------------------------------|
 | GET    | `/health`          | status + which engines/keys are available      |
 | POST   | `/generate`        | multipart `file` + `topic` → transcript + audio |
+| POST   | `/upload`          | stage a file for WS generation → `{episode_id}` |
+| WS     | `/ws/generate`     | stream generation with live progress (see below) |
 | GET    | `/audio/{id}`      | stream/download the episode MP3                 |
 | POST   | `/feedback`        | record a struggled concept (spaced repetition)  |
+
+### WebSocket generation
+
+Generation takes ~2 minutes (LLM + per-line TTS), so the frontend uses a
+WebSocket to stream real progress instead of holding one long HTTP request:
+
+1. `POST /upload` (multipart `file`) → `{"episode_id": "..."}`
+2. Open `ws://…/ws/generate` and send `{"episode_id", "topic", "user_id"?}`
+3. Receive JSON events until `done` or `error`:
+
+```jsonc
+{"event": "accepted", "episode_id": "…"}
+{"event": "stage", "stage": "ingest|chunk|embed|retrieve|script|audio", "label": "…"}
+{"event": "script", "source": "claude", "transcript": [...]}   // script ready
+{"event": "tts_progress", "done": 12, "total": 38}             // per-line voice
+{"event": "done", ...GenerateResponse fields}                  // final payload
+{"event": "error", "detail": "…"}
+```
+
+The plain `POST /generate` remains as a fallback (the frontend automatically
+uses it if the socket can't connect).
 
 ## Notes
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UploadCardProps {
   onSubmit: (file: File, topic: string) => void;
@@ -15,6 +15,55 @@ export default function UploadDrop({ onSubmit, disabled }: UploadCardProps) {
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // --- mic recording (MediaRecorder -> webm File) ---
+  const [recording, setRecording] = useState(false);
+  const [recSeconds, setRecSeconds] = useState(0);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      // Tidy up if unmounted mid-recording.
+      if (timerRef.current) clearInterval(timerRef.current);
+      recorderRef.current?.stream.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    recorderRef.current?.stop();
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    setError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : "audio/ogg";
+      const rec = new MediaRecorder(stream, { mimeType: mime });
+      recorderRef.current = rec;
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => e.data.size > 0 && chunksRef.current.push(e.data);
+      rec.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        if (timerRef.current) clearInterval(timerRef.current);
+        setRecording(false);
+        const ext = mime.includes("webm") ? "webm" : "ogg";
+        const blob = new Blob(chunksRef.current, { type: mime });
+        if (blob.size > 0) {
+          setFile(new File([blob], `voice_note.${ext}`, { type: mime }));
+        }
+      };
+      rec.start();
+      setRecording(true);
+      setRecSeconds(0);
+      timerRef.current = setInterval(() => setRecSeconds((s) => s + 1), 1000);
+    } catch {
+      setError("Microphone access was blocked — allow it in the browser, or upload a file.");
+    }
+  }, []);
 
   const pick = useCallback((f: File | null) => {
     if (!f) return;
@@ -96,6 +145,36 @@ export default function UploadDrop({ onSubmit, disabled }: UploadCardProps) {
         )}
       </div>
 
+      {/* Mic — speak instead of uploading */}
+      <div className="mt-4 flex items-center gap-3">
+        <div className="h-px flex-1 bg-white/10" />
+        <span className="text-[11px] uppercase tracking-[0.2em] text-white/35">or</span>
+        <div className="h-px flex-1 bg-white/10" />
+      </div>
+      <button
+        type="button"
+        onClick={recording ? stopRecording : startRecording}
+        disabled={disabled}
+        className={`mt-4 flex w-full items-center justify-center gap-3 rounded-2xl border py-3.5 text-sm font-medium transition-all ${
+          recording
+            ? "border-rose-400/50 bg-rose-500/10 text-rose-200"
+            : "border-hairline bg-white/[0.04] text-white/75 hover:border-white/30 hover:bg-white/[0.07]"
+        }`}
+      >
+        <span
+          className={`grid h-8 w-8 place-items-center rounded-full ${
+            recording
+              ? "animate-pulseGlow bg-rose-500/25 text-rose-300"
+              : "bg-gradient-to-br from-indigo/30 to-teal/20 text-white/80"
+          }`}
+        >
+          {recording ? <StopIcon /> : <MicIcon small />}
+        </span>
+        {recording
+          ? `Recording… ${Math.floor(recSeconds / 60)}:${String(recSeconds % 60).padStart(2, "0")} — tap to finish`
+          : "Speak your notes instead"}
+      </button>
+
       {/* Topic */}
       <div className="mt-5">
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-white/50">
@@ -139,11 +218,19 @@ function DocIcon() {
     </svg>
   );
 }
-function MicIcon() {
+function MicIcon({ small }: { small?: boolean } = {}) {
+  const s = small ? 16 : 24;
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
       <rect x="9" y="2" width="6" height="12" rx="3" />
       <path d="M5 10a7 7 0 0 0 14 0M12 17v5" />
+    </svg>
+  );
+}
+function StopIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="6" width="12" height="12" rx="2.5" />
     </svg>
   );
 }

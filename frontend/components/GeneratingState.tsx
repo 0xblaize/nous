@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { GenerationProgress } from "@/lib/api";
 
 const STAGES = [
   { label: "Reading your document", sub: "extracting the words that matter" },
@@ -10,15 +11,38 @@ const STAGES = [
   { label: "Giving the hosts a voice", sub: "stitching the audio together" },
 ];
 
+// Map backend WS stage names onto the visual stages above.
+const STAGE_INDEX: Record<string, number> = {
+  ingest: 0,
+  chunk: 1,
+  embed: 1,
+  retrieve: 2,
+  script: 3,
+  audio: 4,
+};
+
 /**
- * A calm, cinematic loading sequence. Advances through named pipeline stages on
- * a timer (purely visual — the real request runs in parallel) and rests on the
- * final stage until the parent swaps this out for the player.
+ * A calm, cinematic loading sequence. When `progress` (live WebSocket events)
+ * is provided it tracks the real pipeline — including per-line voice progress.
+ * Without it, it eases through the stages on a timer and rests on the last.
  */
-export default function GeneratingState() {
-  const [stage, setStage] = useState(0);
+export default function GeneratingState({
+  progress,
+}: {
+  progress?: GenerationProgress | null;
+}) {
+  const [timerStage, setTimerStage] = useState(0);
+  const live = progress != null;
+  const stage = live
+    ? STAGE_INDEX[progress.stage] ?? 0
+    : timerStage;
+  const tts =
+    live && progress.ttsTotal
+      ? { done: progress.ttsDone ?? 0, total: progress.ttsTotal }
+      : null;
 
   useEffect(() => {
+    if (live) return; // real events drive the display
     // Ease through stages; linger on the last (audio) which takes longest.
     const timings = [2200, 2600, 2600, 4200];
     let idx = 0;
@@ -26,7 +50,7 @@ export default function GeneratingState() {
     const advance = () => {
       idx += 1;
       if (idx < STAGES.length) {
-        setStage(idx);
+        setTimerStage(idx);
         if (idx < timings.length) {
           timers.push(setTimeout(advance, timings[idx]));
         }
@@ -34,7 +58,7 @@ export default function GeneratingState() {
     };
     timers.push(setTimeout(advance, timings[0]));
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [live]);
 
   return (
     <div className="animate-fadeUp flex w-full max-w-md flex-col items-center">
@@ -79,7 +103,11 @@ export default function GeneratingState() {
                   {s.label}
                 </p>
                 {active && (
-                  <p className="text-xs text-white/45">{s.sub}</p>
+                  <p className="text-xs text-white/45">
+                    {i === 4 && tts
+                      ? `voicing line ${tts.done} of ${tts.total}`
+                      : s.sub}
+                  </p>
                 )}
               </div>
             </li>

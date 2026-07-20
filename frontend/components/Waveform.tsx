@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { reactivity } from "@/lib/reactivity";
 
 interface WaveformProps {
   progress: number; // 0..1 playback position
@@ -65,7 +66,15 @@ export default function Waveform({
           playing && !prefersReduced
             ? 1 + 0.28 * Math.exp(-distToHead * 14) * (0.6 + 0.4 * Math.sin(tRef.current * 3 + i))
             : 1;
-        const h = heights[i] * mid * 1.5 * pulse;
+        // Live spectrum: when the analyser is running, bars ride the real
+        // frequency energy of the hosts' voices (mirrored around the center).
+        const spec = reactivity.spectrum;
+        let live = 1;
+        if (playing && spec && spec.length > 0 && !prefersReduced) {
+          const bin = spec[Math.floor((Math.abs(frac - 0.5) * 2) * (spec.length - 8)) + 4] / 255;
+          live = 0.65 + bin * 1.1;
+        }
+        const h = heights[i] * mid * 1.5 * pulse * live;
         const x = i * (barW + gap);
 
         const grad = ctx.createLinearGradient(0, mid - h, 0, mid + h);

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { DialogueLine } from "@/lib/api";
+import { useAudioReactivity } from "@/lib/useAudioReactivity";
 import Waveform from "./Waveform";
 
 interface AudioPlayerProps {
@@ -30,6 +31,8 @@ export default function AudioPlayer({
   const [playing, setPlaying] = useState(false);
   const [cur, setCur] = useState(0);
   const [dur, setDur] = useState(0);
+  // Feed the night sky + waveform with the live voice spectrum.
+  useAudioReactivity(audioRef);
 
   useEffect(() => {
     const a = audioRef.current;
@@ -146,7 +149,9 @@ export default function AudioPlayer({
           </p>
         )}
 
-        {audioUrl && <audio ref={audioRef} src={audioUrl} preload="metadata" />}
+        {audioUrl && (
+          <audio ref={audioRef} src={audioUrl} preload="metadata" crossOrigin="anonymous" />
+        )}
       </div>
 
       {/* Transcript — high-contrast (NOT glass) for readability */}

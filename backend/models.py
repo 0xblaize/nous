@@ -27,3 +27,27 @@ class HealthResponse(BaseModel):
     ffmpeg: bool
     anthropic: bool
     groq: bool
+
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user_id: str
+    email: str
+
+
+class EpisodeSummary(BaseModel):
+    id: str
+    topic: str
+    source: str
+    audio_available: bool
+    created_at: float

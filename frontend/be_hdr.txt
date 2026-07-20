@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+date: Mon, 20 Jul 2026 03:39:23 GMT
+server: uvicorn
+content-length: 4631
+content-type: application/json
+access-control-allow-origin: http://localhost:3000
+vary: Origin
+

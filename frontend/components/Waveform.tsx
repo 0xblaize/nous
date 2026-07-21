@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef } from "react";
 import { reactivity } from "@/lib/reactivity";
 
@@ -79,21 +77,20 @@ export default function Waveform({
 
         const grad = ctx.createLinearGradient(0, mid - h, 0, mid + h);
         if (played) {
-          grad.addColorStop(0, "rgba(196,181,253,0.95)");
-          grad.addColorStop(0.5, "rgba(129,140,248,0.95)");
-          grad.addColorStop(1, "rgba(45,212,191,0.9)");
+          grad.addColorStop(0, "rgba(26,26,26,0.95)");
+          grad.addColorStop(1, "rgba(26,26,26,0.75)");
         } else {
-          grad.addColorStop(0, "rgba(255,255,255,0.16)");
-          grad.addColorStop(1, "rgba(255,255,255,0.08)");
+          grad.addColorStop(0, "rgba(0,0,0,0.14)");
+          grad.addColorStop(1, "rgba(0,0,0,0.07)");
         }
         ctx.fillStyle = grad;
         const r = Math.min(barW / 2, 3 * devicePixelRatio);
         roundRect(ctx, x, mid - h, barW, h * 2, r);
         ctx.fill();
 
-        // Glow on the bar right at the playhead.
+        // Green glow on the bar right at the playhead.
         if (played && distToHead < 0.03) {
-          ctx.shadowColor = "rgba(196,181,253,0.9)";
+          ctx.shadowColor = "rgba(159,255,0,0.9)";
           ctx.shadowBlur = 18 * devicePixelRatio;
           ctx.fill();
           ctx.shadowBlur = 0;

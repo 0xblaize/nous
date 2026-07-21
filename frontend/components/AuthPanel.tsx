@@ -1,12 +1,7 @@
-"use client";
-
 import { useState } from "react";
 import { login, register, type AuthUser } from "@/lib/api";
 
-/**
- * Glass sign-in / sign-up panel, matching the night-sky aesthetic.
- * Guests can skip — episodes just won't be saved to a library.
- */
+/** White sign-in / sign-up card in the landing's design language. */
 export default function AuthPanel({
   onDone,
   onSkip,
@@ -40,15 +35,18 @@ export default function AuthPanel({
     }
   };
 
+  const input =
+    "w-full rounded-xl border border-black/10 bg-white px-4 py-3.5 text-[15px] text-zinc-900 placeholder-zinc-400 shadow-sm outline-none transition focus:border-[#1a1a1a]";
+
   return (
-    <div className="animate-fadeUp glass-strong w-full max-w-sm rounded-[28px] p-8">
-      <h2 className="text-center text-xl font-semibold text-white/95">
-        {mode === "login" ? "Welcome back" : "Join Nous"}
+    <div className="animate-fadeUp w-full max-w-sm rounded-2xl border border-black/[0.05] bg-white p-8 shadow-sm">
+      <h2 className="text-center font-display text-xl font-semibold text-[#1a1a1a]">
+        {mode === "login" ? "welcome back" : "join nous"}
       </h2>
-      <p className="mt-1.5 text-center text-sm text-white/50">
+      <p className="mt-1.5 text-center text-sm text-zinc-500">
         {mode === "login"
-          ? "Your episodes and memory are waiting."
-          : "Keep every episode, and let the hosts remember you."}
+          ? "your episodes and memory are waiting."
+          : "keep every episode, and let the hosts remember you."}
       </p>
 
       <div className="mt-6 space-y-3">
@@ -61,7 +59,7 @@ export default function AuthPanel({
           }}
           placeholder="email"
           autoComplete="email"
-          className="w-full rounded-2xl border border-hairline bg-white/[0.04] px-4 py-3.5 text-[15px] text-white placeholder-white/30 outline-none transition focus:border-violet/60 focus:bg-white/[0.06]"
+          className={input}
         />
         <input
           type="password"
@@ -73,32 +71,32 @@ export default function AuthPanel({
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder="password"
           autoComplete={mode === "login" ? "current-password" : "new-password"}
-          className="w-full rounded-2xl border border-hairline bg-white/[0.04] px-4 py-3.5 text-[15px] text-white placeholder-white/30 outline-none transition focus:border-violet/60 focus:bg-white/[0.06]"
+          className={input}
         />
       </div>
 
-      {error && <p className="mt-3 text-sm text-rose-300/80">{error}</p>}
+      {error && <p className="mt-3 text-sm text-rose-500">{error}</p>}
 
       <button
         onClick={submit}
         disabled={busy}
-        className="mt-5 w-full rounded-2xl bg-gradient-to-r from-indigo via-violet to-indigo bg-[length:200%_100%] py-3.5 text-sm font-semibold text-white transition-all hover:bg-[position:100%_0] active:scale-[0.99] disabled:opacity-50"
+        className="mt-5 w-full rounded-full bg-[#1a1a1a] py-3.5 text-sm font-semibold text-white transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
       >
-        {busy ? "…" : mode === "login" ? "Sign in" : "Create account"}
+        {busy ? "..." : mode === "login" ? "sign in" : "create account"}
       </button>
 
-      <div className="mt-5 flex items-center justify-between text-xs text-white/45">
+      <div className="mt-5 flex items-center justify-between text-xs text-zinc-500">
         <button
-          className="transition hover:text-white/80"
+          className="lowercase transition hover:text-[#1a1a1a]"
           onClick={() => {
             setMode(mode === "login" ? "register" : "login");
             setError(null);
           }}
         >
-          {mode === "login" ? "New here? Create an account" : "Have an account? Sign in"}
+          {mode === "login" ? "new here? create an account" : "have an account? sign in"}
         </button>
-        <button className="transition hover:text-white/80" onClick={onSkip}>
-          Continue as guest →
+        <button className="lowercase transition hover:text-[#1a1a1a]" onClick={onSkip}>
+          guest →
         </button>
       </div>
     </div>

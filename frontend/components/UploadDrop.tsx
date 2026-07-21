@@ -59,7 +59,7 @@ export default function UploadDrop({ onSubmit, disabled, initialTopic }: UploadC
       setRecSeconds(0);
       timerRef.current = setInterval(() => setRecSeconds((s) => s + 1), 1000);
     } catch {
-      setError("Microphone access was blocked — allow it in the browser, or upload a file.");
+      setError("Microphone access was blocked. Allow it in the browser, or upload a file.");
     }
   }, []);
 
@@ -128,7 +128,7 @@ export default function UploadDrop({ onSubmit, disabled, initialTopic }: UploadC
           <>
             <p className="truncate text-sm font-medium text-[#1a1a1a]">{file.name}</p>
             <p className="mt-1 text-xs text-zinc-500">
-              {(file.size / 1024).toFixed(0)} KB · click to replace
+              {(file.size / 1024).toFixed(0)} KB, click to replace
             </p>
           </>
         ) : (
@@ -137,7 +137,7 @@ export default function UploadDrop({ onSubmit, disabled, initialTopic }: UploadC
               Drop a PDF or voice note
             </p>
             <p className="mt-1 text-xs text-zinc-500">
-              PDF, text, or audio · or click to browse
+              PDF, text, or audio. Click to browse
             </p>
           </>
         )}
@@ -169,7 +169,7 @@ export default function UploadDrop({ onSubmit, disabled, initialTopic }: UploadC
           {recording ? <StopIcon /> : <MicIcon small />}
         </span>
         {recording
-          ? `Recording… ${Math.floor(recSeconds / 60)}:${String(recSeconds % 60).padStart(2, "0")} — tap to finish`
+          ? `Recording ${Math.floor(recSeconds / 60)}:${String(recSeconds % 60).padStart(2, "0")}, tap to finish`
           : "Speak your notes instead"}
       </button>
 

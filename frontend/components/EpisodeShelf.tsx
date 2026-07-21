@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { listEpisodes, type EpisodeSummary } from "@/lib/api";
 
@@ -28,27 +26,33 @@ export default function EpisodeShelf({
 
   return (
     <div className="animate-fadeUp w-full max-w-3xl">
-      <p className="mb-3 text-xs uppercase tracking-[0.28em] text-white/40">
-        Your library
+      <p className="mb-3 text-[11px] uppercase tracking-[0.28em] text-zinc-400">
+        your library
       </p>
       <div className="nous-scroll flex gap-3 overflow-x-auto pb-2">
         {episodes.map((ep) => (
           <button
             key={ep.id}
             onClick={() => onOpen(ep.id)}
-            className="glass group w-52 shrink-0 rounded-2xl p-4 text-left transition hover:border-white/25 hover:bg-white/[0.07]"
+            className="group w-52 shrink-0 rounded-2xl border border-black/[0.05] bg-white p-4 text-left shadow-sm transition hover:border-black/20 hover:shadow"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-indigo/35 to-teal/25 text-white/80">
+              <span
+                className={`grid h-8 w-8 place-items-center rounded-xl ${
+                  ep.audio_available
+                    ? "bg-[#1a1a1a] text-white"
+                    : "bg-black/5 text-zinc-500"
+                }`}
+              >
                 {ep.audio_available ? <PlaySmall /> : <TextSmall />}
               </span>
-              <span className="text-[10px] text-white/35">{timeAgo(ep.created_at)}</span>
+              <span className="text-[10px] text-zinc-400">{timeAgo(ep.created_at)}</span>
             </div>
-            <p className="line-clamp-2 text-[13px] font-medium leading-snug text-white/85">
+            <p className="line-clamp-2 text-[13px] font-medium leading-snug text-[#1a1a1a]">
               {ep.topic}
             </p>
-            <p className="mt-1.5 text-[10px] uppercase tracking-[0.16em] text-white/35">
-              {ep.source === "claude" ? "Claude" : ep.source === "groq" ? "Groq" : "Demo"}
+            <p className="mt-1.5 text-[10px] lowercase tracking-[0.16em] text-zinc-400">
+              {ep.source === "claude" ? "claude" : ep.source === "groq" ? "groq" : "demo"}
             </p>
           </button>
         ))}

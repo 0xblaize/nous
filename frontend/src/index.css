@@ -18,76 +18,17 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* ---------- inner app (night-sky studio) utilities ---------- */
-
-/* Thin, elegant scrollbar for the transcript region. */
+/* Thin, elegant scrollbar for transcript + library rows. */
 .nous-scroll::-webkit-scrollbar {
   width: 7px;
+  height: 7px;
 }
 .nous-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.16);
   border-radius: 999px;
 }
 .nous-scroll::-webkit-scrollbar-track {
   background: transparent;
-}
-
-@layer components {
-  /* Surgical glassmorphism: frosted panel with a scrim + hairline top edge for
-     legibility over the moving sky (WCAG-safe light text). */
-  .glass {
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.09),
-      rgba(255, 255, 255, 0.035)
-    );
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-top-color: rgba(255, 255, 255, 0.22);
-    box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
-      0 24px 60px -24px rgba(0, 0, 0, 0.7);
-  }
-
-  .glass-strong {
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.12),
-      rgba(255, 255, 255, 0.05)
-    );
-    backdrop-filter: blur(22px) saturate(150%);
-    -webkit-backdrop-filter: blur(22px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-top-color: rgba(255, 255, 255, 0.26);
-  }
-
-  /* Shimmering skeleton text used in the loading state. */
-  .shimmer-text {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.35) 0%,
-      rgba(255, 255, 255, 0.85) 50%,
-      rgba(255, 255, 255, 0.35) 100%
-    );
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .aurora-text {
-    background: linear-gradient(100deg, #a5b4fc, #c4b5fd 40%, #5eead4 75%, #f0abfc);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-}
-
-/* The dark studio views paint their own night-sky canvas over this scrim. */
-.nous-dark {
-  background: #07070c;
-  color: #f4f4f7;
 }
 
 /* Respect users who prefer reduced motion — freeze all animation. */

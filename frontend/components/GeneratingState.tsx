@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import type { GenerationProgress } from "@/lib/api";
 
@@ -22,9 +20,9 @@ const STAGE_INDEX: Record<string, number> = {
 };
 
 /**
- * A calm, cinematic loading sequence. When `progress` (live WebSocket events)
- * is provided it tracks the real pipeline — including per-line voice progress.
- * Without it, it eases through the stages on a timer and rests on the last.
+ * Calm staged loading. With live `progress` (WebSocket events) it tracks the
+ * real pipeline — including per-line voice progress. Without it, a gentle
+ * timer eases through the stages and rests on the last.
  */
 export default function GeneratingState({
   progress,
@@ -33,9 +31,7 @@ export default function GeneratingState({
 }) {
   const [timerStage, setTimerStage] = useState(0);
   const live = progress != null;
-  const stage = live
-    ? STAGE_INDEX[progress.stage] ?? 0
-    : timerStage;
+  const stage = live ? STAGE_INDEX[progress.stage] ?? 0 : timerStage;
   const tts =
     live && progress.ttsTotal
       ? { done: progress.ttsDone ?? 0, total: progress.ttsTotal }
@@ -43,7 +39,6 @@ export default function GeneratingState({
 
   useEffect(() => {
     if (live) return; // real events drive the display
-    // Ease through stages; linger on the last (audio) which takes longest.
     const timings = [2200, 2600, 2600, 4200];
     let idx = 0;
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -62,34 +57,34 @@ export default function GeneratingState({
 
   return (
     <div className="animate-fadeUp flex w-full max-w-md flex-col items-center">
-      {/* Breathing orb */}
-      <div className="relative mb-10 grid h-32 w-32 place-items-center">
-        <div className="absolute inset-0 animate-breathe rounded-full bg-gradient-to-br from-violet/60 to-teal/40 blur-2xl" />
-        <div className="absolute inset-3 animate-pulseGlow rounded-full border border-white/20" />
-        <div className="absolute inset-6 rounded-full border border-white/10" />
-        <div className="relative h-3 w-3 animate-pulseGlow rounded-full bg-white shadow-[0_0_24px_6px_rgba(196,181,253,0.8)]" />
+      {/* Breathing mark */}
+      <div className="relative mb-10 grid h-28 w-28 place-items-center">
+        <div className="absolute inset-0 animate-breathe rounded-full bg-brand-green/40 blur-2xl" />
+        <div className="absolute inset-3 animate-pulseGlow rounded-full border border-black/15" />
+        <div className="absolute inset-6 rounded-full border border-black/10" />
+        <div className="relative h-3 w-3 animate-pulseGlow rounded-full bg-[#1a1a1a]" />
       </div>
 
-      <ul className="w-full space-y-3">
+      <ul className="w-full space-y-2.5">
         {STAGES.map((s, i) => {
           const active = i === stage;
           const done = i < stage;
           return (
             <li
               key={s.label}
-              className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all duration-500 ${
+              className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-all duration-500 ${
                 active
-                  ? "glass border-hairline"
+                  ? "border-black/10 bg-white shadow-sm"
                   : "border-transparent opacity-45"
               }`}
             >
               <span
                 className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] ${
                   done
-                    ? "bg-teal/25 text-teal"
+                    ? "bg-brand-green/60 text-black"
                     : active
-                    ? "bg-violet/25 text-violet"
-                    : "bg-white/5 text-white/40"
+                    ? "bg-[#1a1a1a] text-white"
+                    : "bg-black/5 text-zinc-500"
                 }`}
               >
                 {done ? "✓" : i + 1}
@@ -97,13 +92,13 @@ export default function GeneratingState({
               <div className="min-w-0">
                 <p
                   className={`text-sm font-medium ${
-                    active ? "shimmer-text animate-shimmer" : "text-white/70"
+                    active ? "text-[#1a1a1a]" : "text-zinc-600"
                   }`}
                 >
                   {s.label}
                 </p>
                 {active && (
-                  <p className="text-xs text-white/45">
+                  <p className="text-xs text-zinc-500">
                     {i === 4 && tts
                       ? `voicing line ${tts.done} of ${tts.total}`
                       : s.sub}
@@ -115,8 +110,8 @@ export default function GeneratingState({
         })}
       </ul>
 
-      <p className="mt-8 text-center text-xs text-white/40">
-        Crafting your episode — this usually takes under a minute.
+      <p className="mt-8 text-center text-xs text-zinc-500">
+        crafting your episode, a couple of minutes of calm.
       </p>
     </div>
   );

@@ -13,18 +13,28 @@ export default function Hero({ onEnter }: { onEnter: (topic?: string) => void })
 
   return (
     <section className="relative min-h-[110vh] sm:min-h-[140vh] w-full flex flex-col items-center justify-start overflow-hidden bg-bg-base">
-      {/* Background video */}
+      {/* Background video with a cinematic backdrop that always shows, even
+          while the video loads (or if the network drops it) */}
       <div className="absolute top-[15vh] sm:top-[20vh] left-0 w-full h-[95vh] sm:h-[120vh] z-0 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 90% 70% at 50% 30%, #2b2e4a 0%, #14162b 45%, #0a0b16 100%)",
+          }}
+        />
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover opacity-100"
+          className="relative w-full h-full object-cover opacity-100"
           src={VIDEO_URL}
         />
         {/* Blend the video's top edge into the page background */}
         <div className="absolute top-0 left-0 w-full h-24 sm:h-32 bg-gradient-to-b from-bg-base to-transparent"></div>
+        {/* Settle the bottom edge back into the light base */}
+        <div className="absolute bottom-0 left-0 w-full h-24 sm:h-32 bg-gradient-to-t from-bg-base to-transparent"></div>
       </div>
 
       {/* Hero content */}
@@ -39,10 +49,10 @@ export default function Hero({ onEnter }: { onEnter: (topic?: string) => void })
             <span className="text-[#1a1a1a]">Nous turns </span>
             <span className="text-[#8e8e8e]">anything you read</span>
             <br />
-            <span className="text-[#8e8e8e]">— or say — into a ten-minute</span>
+            <span className="text-[#8e8e8e]">or say into a ten minute</span>
             <br />
             <span className="text-[#8e8e8e]">
-              two-host{" "}
+              two host{" "}
               <span className="w-[16px] md:w-[42px] lg:w-[62px] h-[0.62em] border-[2px] border-[#1a1a1a] rounded-full inline-flex items-center justify-center align-middle">
                 <span className="w-2 h-2 rounded-full bg-black" />
               </span>{" "}
@@ -90,7 +100,7 @@ export default function Hero({ onEnter }: { onEnter: (topic?: string) => void })
               </button>
             </form>
             <p className="mt-3 text-[12px] text-zinc-500">
-              drop a PDF, speak a voice note — two calm hosts talk you through
+              drop a PDF or speak a voice note. two calm hosts talk you through
               it, and remember what confused you for next time.
             </p>
           </motion.div>
@@ -102,7 +112,7 @@ export default function Hero({ onEnter }: { onEnter: (topic?: string) => void })
         className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/40 bg-white/30 px-3 py-1.5 text-[11px] lowercase text-zinc-800 shadow-sm backdrop-blur-md transition hover:bg-white/50"
         aria-label="Switch language"
       >
-        pl — en
+        pl / en
       </button>
       <span className="absolute bottom-4 left-6 z-10 text-[11px] text-zinc-600">
         2026

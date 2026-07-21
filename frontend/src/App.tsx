@@ -21,8 +21,37 @@ import {
 
 type View = "landing" | "auth" | "studio" | "generating" | "done" | "error";
 
+// Real URLs: /landing, /login, /studio. Generation states live under /studio.
+function pathToView(path: string): View {
+  if (path === "/login") return "auth";
+  if (path === "/studio") return "studio";
+  return "landing";
+}
+
+function viewToPath(view: View): string {
+  if (view === "auth") return "/login";
+  if (view === "landing") return "/landing";
+  return "/studio";
+}
+
 export default function App() {
-  const [view, setView] = useState<View>("landing");
+  const [view, setViewState] = useState<View>(() =>
+    pathToView(window.location.pathname)
+  );
+
+  const setView = (v: View) => {
+    setViewState(v);
+    const path = viewToPath(v);
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+    }
+  };
+
+  useEffect(() => {
+    const onPop = () => setViewState(pathToView(window.location.pathname));
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +135,7 @@ export default function App() {
                 className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-[11px] lowercase text-zinc-600 shadow-sm transition hover:text-[#1a1a1a]"
                 title={user.email}
               >
-                {user.email.split("@")[0]} · sign out
+                {user.email.split("@")[0]}, sign out
               </button>
             ) : (
               view !== "auth" && (
@@ -186,7 +215,7 @@ export default function App() {
         <footer className="flex items-center justify-between py-6 text-[11px] text-zinc-500">
           <span>2026</span>
           <span className="lowercase">
-            python · fastapi · sqlite · chromadb · claude + groq · edge-tts
+            python, fastapi, sqlite, chromadb, claude, groq, edge tts
           </span>
           <span className="lowercase">micro-learning tools</span>
         </footer>
@@ -222,7 +251,7 @@ function EngineBadge({
       source === "claude" ? "claude" : source === "groq" ? "groq llama-3" : "demo voice";
     return <span className={chip}>script by {label}</span>;
   }
-  if (!health) return <span className={chip}>connecting…</span>;
+  if (!health) return <span className={chip}>connecting...</span>;
   const online = health.status === "ok";
   const engine = health.anthropic ? "claude" : health.groq ? "groq" : "demo mode";
   return (

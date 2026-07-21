@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import type { DialogueLine } from "@/lib/api";
 import { useAudioReactivity } from "@/lib/useAudioReactivity";
@@ -31,7 +29,7 @@ export default function AudioPlayer({
   const [playing, setPlaying] = useState(false);
   const [cur, setCur] = useState(0);
   const [dur, setDur] = useState(0);
-  // Feed the night sky + waveform with the live voice spectrum.
+  // Live voice spectrum drives the waveform.
   useAudioReactivity(audioRef);
 
   useEffect(() => {
@@ -73,19 +71,19 @@ export default function AudioPlayer({
 
   return (
     <div className="animate-fadeUp w-full max-w-2xl">
-      <div className="glass-strong rounded-[28px] p-7">
+      <div className="rounded-2xl border border-black/[0.05] bg-white p-7 shadow-sm">
         {/* Header */}
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.28em] text-white/45">
-              Now playing
+            <p className="text-[11px] uppercase tracking-[0.28em] text-zinc-400">
+              now playing
             </p>
-            <h2 className="mt-1 truncate text-lg font-semibold text-white/95">
+            <h2 className="mt-1 truncate font-display text-lg font-semibold text-[#1a1a1a]">
               {topic}
             </h2>
           </div>
-          <span className="flex items-center gap-2 rounded-full border border-hairline bg-white/5 px-3 py-1 text-[11px] text-white/60">
-            <span className="h-1.5 w-1.5 animate-pulseGlow rounded-full bg-teal" />
+          <span className="flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1 text-[11px] lowercase text-zinc-600 shadow-sm">
+            <span className="h-1.5 w-1.5 animate-pulseGlow rounded-full bg-brand-green" />
             two voices
           </span>
         </div>
@@ -104,9 +102,9 @@ export default function AudioPlayer({
             onClick={toggle}
             disabled={!audioUrl}
             aria-label={playing ? "Pause" : "Play"}
-            className="group relative grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet to-indigo transition active:scale-95 disabled:opacity-40"
+            className="group relative grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#1a1a1a] transition active:scale-95 disabled:opacity-40"
           >
-            <span className="absolute inset-0 rounded-full bg-violet/50 blur-xl transition group-hover:bg-violet/70" />
+            <span className="absolute inset-0 rounded-full bg-brand-green/40 blur-xl opacity-0 transition group-hover:opacity-100" />
             <span className="relative text-white">
               {playing ? <PauseIcon /> : <PlayIcon />}
             </span>
@@ -114,18 +112,18 @@ export default function AudioPlayer({
 
           <div className="flex-1">
             <div
-              className="group h-1.5 w-full cursor-pointer rounded-full bg-white/10"
+              className="group h-1.5 w-full cursor-pointer rounded-full bg-black/10"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 seek((e.clientX - rect.left) / rect.width);
               }}
             >
               <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo via-violet to-teal"
+                className="h-full rounded-full bg-[#1a1a1a]"
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
-            <div className="mt-1.5 flex justify-between text-[11px] tabular-nums text-white/45">
+            <div className="mt-1.5 flex justify-between text-[11px] tabular-nums text-zinc-400">
               <span>{fmt(cur)}</span>
               <span>{fmt(dur)}</span>
             </div>
@@ -135,7 +133,7 @@ export default function AudioPlayer({
             <a
               href={audioUrl}
               download={`nous_${episodeId}.mp3`}
-              className="grid h-10 w-10 place-items-center rounded-full border border-hairline text-white/60 transition hover:text-white"
+              className="grid h-10 w-10 place-items-center rounded-full border border-black/10 text-zinc-500 transition hover:border-black/30 hover:text-[#1a1a1a]"
               aria-label="Download episode"
             >
               <DownloadIcon />
@@ -144,7 +142,7 @@ export default function AudioPlayer({
         </div>
 
         {note && (
-          <p className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-xs leading-relaxed text-amber-200/80">
+          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-700">
             {note}
           </p>
         )}
@@ -154,9 +152,9 @@ export default function AudioPlayer({
         )}
       </div>
 
-      {/* Transcript — high-contrast (NOT glass) for readability */}
-      <div className="mt-4 rounded-[24px] border border-hairline bg-black/40 p-1.5">
-        <div className="nous-scroll max-h-80 overflow-y-auto rounded-[18px] p-5">
+      {/* Transcript */}
+      <div className="mt-4 rounded-2xl border border-black/[0.05] bg-white p-1.5 shadow-sm">
+        <div className="nous-scroll max-h-80 overflow-y-auto rounded-xl p-5">
           <ul className="space-y-4">
             {transcript.map((line, i) => {
               const expert = line.speaker === "HOST_A";
@@ -165,8 +163,8 @@ export default function AudioPlayer({
                   <span
                     className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-semibold ${
                       expert
-                        ? "bg-indigo/25 text-indigo"
-                        : "bg-teal/25 text-teal"
+                        ? "bg-[#1a1a1a] text-white"
+                        : "bg-brand-green/60 text-black"
                     }`}
                   >
                     {expert ? "A" : "B"}
@@ -174,12 +172,12 @@ export default function AudioPlayer({
                   <div>
                     <p
                       className={`text-[10px] uppercase tracking-[0.2em] ${
-                        expert ? "text-indigo/70" : "text-teal/70"
+                        expert ? "text-zinc-500" : "text-zinc-500"
                       }`}
                     >
-                      {expert ? "Host A · Expert" : "Host B · Learner"}
+                      {expert ? "host a (expert)" : "host b (learner)"}
                     </p>
-                    <p className="mt-0.5 text-[15px] leading-relaxed text-white/85">
+                    <p className="mt-0.5 text-[15px] leading-relaxed text-zinc-800">
                       {line.text}
                     </p>
                   </div>

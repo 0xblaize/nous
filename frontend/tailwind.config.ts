@@ -2,13 +2,18 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    "./app/**/*.{ts,tsx}",
+    "./index.html",
+    "./src/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
+    "./lib/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        // Dark-first tonal surfaces (elevation via luminance, not shadow).
+        // Landing (light) tokens — per spec.
+        "bg-base": "#EDEEF5",
+        "brand-green": "#9fff00",
+        // Dark-first tonal surfaces for the studio views.
         base: "#07070c",
         surface: "rgba(255,255,255,0.04)",
         "surface-2": "rgba(255,255,255,0.06)",
@@ -21,23 +26,12 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "sans-serif"],
       },
       backdropBlur: {
         glass: "18px",
       },
       keyframes: {
-        drift1: {
-          "0%,100%": { transform: "translate(0,0) scale(1)" },
-          "50%": { transform: "translate(6vw,4vh) scale(1.15)" },
-        },
-        drift2: {
-          "0%,100%": { transform: "translate(0,0) scale(1.1)" },
-          "50%": { transform: "translate(-7vw,-5vh) scale(0.95)" },
-        },
-        drift3: {
-          "0%,100%": { transform: "translate(0,0) scale(1)" },
-          "50%": { transform: "translate(5vw,-6vh) scale(1.2)" },
-        },
         fadeUp: {
           "0%": { opacity: "0", transform: "translateY(14px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
@@ -56,9 +50,6 @@ const config: Config = {
         },
       },
       animation: {
-        drift1: "drift1 42s ease-in-out infinite",
-        drift2: "drift2 55s ease-in-out infinite",
-        drift3: "drift3 48s ease-in-out infinite",
         fadeUp: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both",
         shimmer: "shimmer 2.4s linear infinite",
         pulseGlow: "pulseGlow 3.5s ease-in-out infinite",

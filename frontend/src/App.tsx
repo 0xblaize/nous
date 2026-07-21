@@ -1,8 +1,7 @@
-"use client";
-
 import { useEffect, useState } from "react";
+import Navbar from "./components/Navbar";
+import Hero from "./components/Hero";
 import NightSky from "@/components/NightSky";
-import LandingHero from "@/components/LandingHero";
 import AuthPanel from "@/components/AuthPanel";
 import EpisodeShelf from "@/components/EpisodeShelf";
 import UploadDrop from "@/components/UploadDrop";
@@ -23,7 +22,7 @@ import {
 
 type View = "landing" | "auth" | "studio" | "generating" | "done" | "error";
 
-export default function Home() {
+export default function App() {
   const [view, setView] = useState<View>("landing");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [result, setResult] = useState<GenerateResult | null>(null);
@@ -36,7 +35,7 @@ export default function Home() {
     setUser(savedAuth());
   }, []);
 
-  const enter = () => setView(user ? "studio" : "auth");
+  const enter = () => setView(savedAuth() ? "studio" : "auth");
 
   const handleSubmit = async (file: File, topic: string) => {
     setView("generating");
@@ -67,20 +66,29 @@ export default function Home() {
     setView("studio");
   };
 
+  // ---------- Landing (light, per spec) ----------
+  if (view === "landing") {
+    return (
+      <div className="min-h-screen bg-bg-base selection:bg-brand-green selection:text-black">
+        <Navbar onGetStarted={enter} />
+        <main>
+          <Hero onEnter={enter} />
+        </main>
+      </div>
+    );
+  }
+
+  // ---------- Studio (dark night-sky app) ----------
   return (
-    <main className="relative flex min-h-screen flex-col items-center px-5 py-8">
+    <div className="nous-dark relative flex min-h-screen flex-col items-center px-5 py-8 selection:bg-brand-green selection:text-black">
       <NightSky />
 
-      {/* Top bar */}
       <header className="z-10 flex w-full max-w-5xl items-center justify-between">
-        <button
-          onClick={() => setView("landing")}
-          className="flex items-center gap-2.5"
-        >
+        <button onClick={() => setView("landing")} className="flex items-center gap-2.5">
           <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-violet to-teal text-sm font-bold text-white shadow-[0_0_24px_rgba(139,92,246,0.45)]">
             N
           </span>
-          <span className="text-lg font-semibold tracking-tight text-white/90">
+          <span className="font-display text-lg font-semibold tracking-tight text-white/90">
             Nous
           </span>
         </button>
@@ -100,8 +108,7 @@ export default function Home() {
               {user.email.split("@")[0]} · sign out
             </button>
           ) : (
-            view !== "auth" &&
-            view !== "landing" && (
+            view !== "auth" && (
               <button
                 onClick={() => setView("auth")}
                 className="rounded-full border border-hairline px-3 py-1.5 text-[11px] text-white/55 transition hover:text-white"
@@ -113,10 +120,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Stage */}
       <section className="z-10 flex w-full flex-1 flex-col items-center justify-center gap-8 py-6">
-        {view === "landing" && <LandingHero onEnter={enter} />}
-
         {view === "auth" && (
           <AuthPanel
             onDone={(u) => {
@@ -130,7 +134,7 @@ export default function Home() {
         {view === "studio" && (
           <>
             <div className="animate-fadeUp max-w-xl text-center">
-              <h1 className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              <h1 className="text-balance font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                 What shall we <span className="aurora-text">drift through</span> tonight?
               </h1>
             </div>
@@ -164,9 +168,7 @@ export default function Home() {
             <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-rose-500/15 text-rose-300">
               !
             </div>
-            <h2 className="text-lg font-semibold text-white/90">
-              That didn&apos;t work
-            </h2>
+            <h2 className="text-lg font-semibold text-white/90">That didn&apos;t work</h2>
             <p className="mt-2 text-sm text-white/55">{error}</p>
             <button
               onClick={backToStudio}
@@ -181,7 +183,7 @@ export default function Home() {
       <footer className="z-10 mt-auto pt-6 text-center text-xs text-white/25">
         Python · FastAPI · SQLite · ChromaDB · Claude + Groq · edge-tts — all inside one folder.
       </footer>
-    </main>
+    </div>
   );
 }
 
@@ -212,9 +214,7 @@ function EngineBadge({
   const engine = health.anthropic ? "Claude" : health.groq ? "Groq" : "Demo mode";
   return (
     <span className="flex items-center gap-2 rounded-full border border-hairline bg-white/[0.04] px-3 py-1.5 text-[11px] text-white/55">
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${online ? "bg-teal" : "bg-rose-400"}`}
-      />
+      <span className={`h-1.5 w-1.5 rounded-full ${online ? "bg-teal" : "bg-rose-400"}`} />
       {online ? engine : "backend offline"}
     </span>
   );

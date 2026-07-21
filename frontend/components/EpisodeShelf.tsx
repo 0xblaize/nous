@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 import { listEpisodes, type EpisodeSummary } from "@/lib/api";
 
-/** The listener's shelf — past episodes, tap to relisten. */
+function timeAgo(ts: number): string {
+  const s = Date.now() / 1000 - ts;
+  if (s < 3600) return `${Math.max(1, Math.floor(s / 60))}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+/** Horizontal shelf of past episodes for the signed-in listener. */
 export default function EpisodeShelf({
   onOpen,
   refreshKey,
@@ -20,37 +27,32 @@ export default function EpisodeShelf({
   if (!episodes || episodes.length === 0) return null;
 
   return (
-    <div className="animate-fadeUp mt-10 w-full max-w-xl">
+    <div className="animate-fadeUp w-full max-w-3xl">
       <p className="mb-3 text-xs uppercase tracking-[0.28em] text-white/40">
-        Your past episodes
+        Your library
       </p>
-      <ul className="space-y-2">
-        {episodes.slice(0, 6).map((e) => (
-          <li key={e.id}>
-            <button
-              onClick={() => onOpen(e.id)}
-              className="group flex w-full items-center gap-3 rounded-2xl border border-hairline bg-white/[0.03] px-4 py-3 text-left transition hover:border-white/25 hover:bg-white/[0.06]"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-indigo/25 to-teal/15 text-white/70">
-                {e.audio_available ? <PlaySmall /> : <TextSmall />}
+      <div className="nous-scroll flex gap-3 overflow-x-auto pb-2">
+        {episodes.map((ep) => (
+          <button
+            key={ep.id}
+            onClick={() => onOpen(ep.id)}
+            className="glass group w-52 shrink-0 rounded-2xl p-4 text-left transition hover:border-white/25 hover:bg-white/[0.07]"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-indigo/35 to-teal/25 text-white/80">
+                {ep.audio_available ? <PlaySmall /> : <TextSmall />}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm text-white/85">{e.topic}</span>
-                <span className="block text-[11px] text-white/40">
-                  {new Date(e.created_at * 1000).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                  })}{" "}
-                  · script by {e.source}
-                </span>
-              </span>
-              <span className="text-white/25 transition group-hover:translate-x-0.5 group-hover:text-white/60">
-                →
-              </span>
-            </button>
-          </li>
+              <span className="text-[10px] text-white/35">{timeAgo(ep.created_at)}</span>
+            </div>
+            <p className="line-clamp-2 text-[13px] font-medium leading-snug text-white/85">
+              {ep.topic}
+            </p>
+            <p className="mt-1.5 text-[10px] uppercase tracking-[0.16em] text-white/35">
+              {ep.source === "claude" ? "Claude" : ep.source === "groq" ? "Groq" : "Demo"}
+            </p>
+          </button>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
@@ -65,7 +67,7 @@ function PlaySmall() {
 function TextSmall() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M4 6h16M4 12h16M4 18h10" />
+      <path d="M4 7h16M4 12h16M4 17h10" />
     </svg>
   );
 }

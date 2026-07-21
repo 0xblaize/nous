@@ -22,13 +22,13 @@ export interface HealthResult {
   groq: boolean;
 }
 
-// API base. In dev, generation can take 100s+ (LLM + TTS); Next's rewrite proxy
-// drops that long socket, so point the browser straight at the backend when
-// NEXT_PUBLIC_API_BASE is set (CORS is enabled for localhost:3000). Falls back
-// to the same-origin "/api" proxy for short calls / production reverse-proxy.
-const API = process.env.NEXT_PUBLIC_API_BASE
-  ? `${process.env.NEXT_PUBLIC_API_BASE}`
-  : "/api";
+// API base. Generation can take 100s+ (LLM + TTS), so the browser talks to the
+// backend directly (CORS is enabled for localhost:3000) rather than through a
+// dev proxy that would drop the long socket. Override with VITE_API_BASE in
+// the root .env.
+const API =
+  (import.meta.env?.VITE_API_BASE as string | undefined) ||
+  "http://127.0.0.1:8000";
 
 // ---- auth ----
 

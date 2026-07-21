@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
-const LINKS = ["service", "patient resources", "about us", "education center"];
+const LINKS = ["how it works", "your library", "voices", "about nous"];
 
-/** Glassmorphic fixed navbar — 12-col grid, clover mark, mobile drawer. */
-export default function Navbar({ onGetStarted }: { onGetStarted: () => void }) {
+/** Fixed glass navbar — 12-col grid, clover mark, mobile drawer. */
+export default function Navbar({
+  onGetStarted,
+  onSignIn,
+}: {
+  onGetStarted: () => void;
+  onSignIn: () => void;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -14,7 +20,7 @@ export default function Navbar({ onGetStarted }: { onGetStarted: () => void }) {
         <div className="col-span-6 md:col-span-3 flex items-center gap-2.5">
           <CloverIcon />
           <span className="font-display text-lg font-semibold tracking-tight text-[#1a1a1a]">
-            mėntality
+            nous
           </span>
         </div>
 
@@ -34,13 +40,12 @@ export default function Navbar({ onGetStarted }: { onGetStarted: () => void }) {
 
         {/* Right — actions */}
         <div className="col-span-6 md:col-span-3 flex items-center justify-end gap-4">
-          <a
-            href="#"
-            onClick={(e) => e.preventDefault()}
+          <button
+            onClick={onSignIn}
             className="hidden sm:block text-[13px] lowercase text-zinc-700 transition-colors hover:text-[#1a1a1a]"
           >
-            find help
-          </a>
+            sign in
+          </button>
           <button
             onClick={onGetStarted}
             className="rounded-full bg-[#1a1a1a] px-5 py-2.5 text-[13px] font-medium text-white transition-transform hover:scale-[1.03] active:scale-[0.98]"

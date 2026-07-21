@@ -1,10 +1,16 @@
+import { useState } from "react";
 import { motion } from "motion/react";
 
 const VIDEO_URL =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260603_132049_036591b8-6e92-4760-b94c-a7ea6eef315c.mp4";
 
-/** Landing hero — full-bleed video anchored on #EDEEF5, per spec. */
-export default function Hero({ onEnter }: { onEnter: () => void }) {
+/**
+ * Landing hero — full-bleed video anchored on #EDEEF5. Copy speaks to what
+ * Nous is: any document or voice note becomes a two-host podcast episode.
+ */
+export default function Hero({ onEnter }: { onEnter: (topic?: string) => void }) {
+  const [ask, setAsk] = useState("");
+
   return (
     <section className="relative min-h-[110vh] sm:min-h-[140vh] w-full flex flex-col items-center justify-start overflow-hidden bg-bg-base">
       {/* Background video */}
@@ -30,21 +36,21 @@ export default function Hero({ onEnter }: { onEnter: () => void }) {
             transition={{ duration: 0.8 }}
             className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.08] tracking-tight"
           >
-            <span className="text-[#1a1a1a]">Remix: Mentality offers </span>
-            <span className="text-[#8e8e8e]">information</span>
+            <span className="text-[#1a1a1a]">Nous turns </span>
+            <span className="text-[#8e8e8e]">anything you read</span>
             <br />
-            <span className="text-[#8e8e8e]">and resources to help you manage</span>
+            <span className="text-[#8e8e8e]">— or say — into a ten-minute</span>
             <br />
             <span className="text-[#8e8e8e]">
-              your{" "}
+              two-host{" "}
               <span className="w-[16px] md:w-[42px] lg:w-[62px] h-[0.62em] border-[2px] border-[#1a1a1a] rounded-full inline-flex items-center justify-center align-middle">
                 <span className="w-2 h-2 rounded-full bg-black" />
               </span>{" "}
-              mental wellbeing.
+              podcast episode.
             </span>
           </motion.h1>
 
-          {/* Search pill */}
+          {/* Ask pill — the topic goes straight into the studio */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -54,17 +60,19 @@ export default function Hero({ onEnter }: { onEnter: () => void }) {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                onEnter();
+                onEnter(ask.trim() || undefined);
               }}
               className="bg-white rounded-[6px] border border-black/[0.05] p-1 pl-4 flex items-center shadow-sm"
             >
               <input
-                placeholder="Ask me anything..."
+                value={ask}
+                onChange={(e) => setAsk(e.target.value)}
+                placeholder="What do you want to learn tonight?"
                 className="flex-1 bg-transparent text-sm text-zinc-900 placeholder-zinc-400 outline-none"
               />
               <button
                 type="submit"
-                aria-label="Start"
+                aria-label="Start learning"
                 className="bg-[#1a1a1a] text-white w-9 h-9 rounded-full relative grid place-items-center transition-transform hover:scale-105 active:scale-95"
               >
                 <svg
@@ -81,6 +89,10 @@ export default function Hero({ onEnter }: { onEnter: () => void }) {
                 </svg>
               </button>
             </form>
+            <p className="mt-3 text-[12px] text-zinc-500">
+              drop a PDF, speak a voice note — two calm hosts talk you through
+              it, and remember what confused you for next time.
+            </p>
           </motion.div>
         </div>
       </div>
@@ -93,10 +105,10 @@ export default function Hero({ onEnter }: { onEnter: () => void }) {
         pl — en
       </button>
       <span className="absolute bottom-4 left-6 z-10 text-[11px] text-zinc-600">
-        2024
+        2026
       </span>
       <span className="absolute bottom-4 right-6 z-10 text-[11px] lowercase text-zinc-600">
-        mental health tools
+        micro-learning tools
       </span>
     </section>
   );

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
-import NightSky from "@/components/NightSky";
 import AuthPanel from "@/components/AuthPanel";
 import EpisodeShelf from "@/components/EpisodeShelf";
 import UploadDrop from "@/components/UploadDrop";
@@ -29,13 +28,17 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthResult | null>(null);
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
+  const [prefillTopic, setPrefillTopic] = useState("");
 
   useEffect(() => {
     getHealth().then(setHealth);
     setUser(savedAuth());
   }, []);
 
-  const enter = () => setView(savedAuth() ? "studio" : "auth");
+  const enter = (topic?: string) => {
+    if (topic) setPrefillTopic(topic);
+    setView(savedAuth() ? "studio" : "auth");
+  };
 
   const handleSubmit = async (file: File, topic: string) => {
     setView("generating");
@@ -66,11 +69,11 @@ export default function App() {
     setView("studio");
   };
 
-  // ---------- Landing (light, per spec) ----------
+  // ---------- Landing ----------
   if (view === "landing") {
     return (
       <div className="min-h-screen bg-bg-base selection:bg-brand-green selection:text-black">
-        <Navbar onGetStarted={enter} />
+        <Navbar onGetStarted={() => enter()} onSignIn={() => setView("auth")} />
         <main>
           <Hero onEnter={enter} />
         </main>
@@ -78,112 +81,130 @@ export default function App() {
     );
   }
 
-  // ---------- Studio (dark night-sky app) ----------
+  // ---------- App (same light language as the landing) ----------
   return (
-    <div className="nous-dark relative flex min-h-screen flex-col items-center px-5 py-8 selection:bg-brand-green selection:text-black">
-      <NightSky />
+    <div className="min-h-screen bg-bg-base selection:bg-brand-green selection:text-black">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-8 md:px-16 lg:px-20">
+        {/* App header */}
+        <header className="flex w-full items-center justify-between py-6 md:py-8">
+          <button onClick={() => setView("landing")} className="flex items-center gap-2.5">
+            <CloverIcon />
+            <span className="font-display text-lg font-semibold tracking-tight text-[#1a1a1a]">
+              nous
+            </span>
+          </button>
 
-      <header className="z-10 flex w-full max-w-5xl items-center justify-between">
-        <button onClick={() => setView("landing")} className="flex items-center gap-2.5">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-violet to-teal text-sm font-bold text-white shadow-[0_0_24px_rgba(139,92,246,0.45)]">
-            N
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight text-white/90">
-            Nous
-          </span>
-        </button>
-
-        <div className="flex items-center gap-3">
-          <EngineBadge health={health} source={result?.source} />
-          {user ? (
-            <button
-              onClick={() => {
-                signOut();
-                setUser(null);
-                setView("landing");
-              }}
-              className="rounded-full border border-hairline px-3 py-1.5 text-[11px] text-white/55 transition hover:text-white"
-              title={user.email}
-            >
-              {user.email.split("@")[0]} · sign out
-            </button>
-          ) : (
-            view !== "auth" && (
+          <div className="flex items-center gap-3">
+            <EngineBadge health={health} source={result?.source} />
+            {user ? (
               <button
-                onClick={() => setView("auth")}
-                className="rounded-full border border-hairline px-3 py-1.5 text-[11px] text-white/55 transition hover:text-white"
+                onClick={() => {
+                  signOut();
+                  setUser(null);
+                  setView("landing");
+                }}
+                className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-[11px] lowercase text-zinc-600 shadow-sm transition hover:text-[#1a1a1a]"
+                title={user.email}
               >
-                sign in
+                {user.email.split("@")[0]} · sign out
               </button>
-            )
-          )}
-        </div>
-      </header>
-
-      <section className="z-10 flex w-full flex-1 flex-col items-center justify-center gap-8 py-6">
-        {view === "auth" && (
-          <AuthPanel
-            onDone={(u) => {
-              setUser(u);
-              setView("studio");
-            }}
-            onSkip={() => setView("studio")}
-          />
-        )}
-
-        {view === "studio" && (
-          <>
-            <div className="animate-fadeUp max-w-xl text-center">
-              <h1 className="text-balance font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-                What shall we <span className="aurora-text">drift through</span> tonight?
-              </h1>
-            </div>
-            <UploadDrop onSubmit={handleSubmit} />
-            {user && <EpisodeShelf onOpen={openEpisode} refreshKey={view} />}
-          </>
-        )}
-
-        {view === "generating" && <GeneratingState progress={progress} />}
-
-        {view === "done" && result && (
-          <>
-            <AudioPlayer
-              audioUrl={result.audio_url ? audioSrc(result.audio_url) : null}
-              transcript={result.transcript}
-              topic={result.topic}
-              episodeId={result.id}
-              note={result.note}
-            />
-            <button
-              onClick={backToStudio}
-              className="rounded-full border border-hairline px-5 py-2 text-sm text-white/60 transition hover:text-white"
-            >
-              ← Compose another
-            </button>
-          </>
-        )}
-
-        {view === "error" && (
-          <div className="animate-fadeUp glass w-full max-w-md rounded-3xl p-8 text-center">
-            <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-rose-500/15 text-rose-300">
-              !
-            </div>
-            <h2 className="text-lg font-semibold text-white/90">That didn&apos;t work</h2>
-            <p className="mt-2 text-sm text-white/55">{error}</p>
-            <button
-              onClick={backToStudio}
-              className="mt-6 rounded-full bg-white/10 px-5 py-2 text-sm text-white transition hover:bg-white/15"
-            >
-              Try again
-            </button>
+            ) : (
+              view !== "auth" && (
+                <button
+                  onClick={() => setView("auth")}
+                  className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-[11px] lowercase text-zinc-600 shadow-sm transition hover:text-[#1a1a1a]"
+                >
+                  sign in
+                </button>
+              )
+            )}
           </div>
-        )}
-      </section>
+        </header>
 
-      <footer className="z-10 mt-auto pt-6 text-center text-xs text-white/25">
-        Python · FastAPI · SQLite · ChromaDB · Claude + Groq · edge-tts — all inside one folder.
-      </footer>
+        <section className="flex w-full flex-1 flex-col items-center justify-center gap-8 py-8">
+          {view === "auth" && (
+            <AuthPanel
+              onDone={(u) => {
+                setUser(u);
+                setView("studio");
+              }}
+              onSkip={() => setView("studio")}
+            />
+          )}
+
+          {view === "studio" && (
+            <>
+              <div className="animate-fadeUp max-w-2xl text-center">
+                <h1 className="font-display text-balance text-4xl font-medium tracking-tight text-[#1a1a1a] sm:text-5xl">
+                  What shall we learn <span className="text-[#8e8e8e]">tonight?</span>
+                </h1>
+              </div>
+              <UploadDrop onSubmit={handleSubmit} initialTopic={prefillTopic} />
+              {user && <EpisodeShelf onOpen={openEpisode} refreshKey={view} />}
+            </>
+          )}
+
+          {view === "generating" && <GeneratingState progress={progress} />}
+
+          {view === "done" && result && (
+            <>
+              <AudioPlayer
+                audioUrl={result.audio_url ? audioSrc(result.audio_url) : null}
+                transcript={result.transcript}
+                topic={result.topic}
+                episodeId={result.id}
+                note={result.note}
+              />
+              <button
+                onClick={backToStudio}
+                className="rounded-full border border-black/10 bg-white px-5 py-2 text-sm text-zinc-600 shadow-sm transition hover:text-[#1a1a1a]"
+              >
+                ← compose another
+              </button>
+            </>
+          )}
+
+          {view === "error" && (
+            <div className="animate-fadeUp w-full max-w-md rounded-2xl border border-black/[0.05] bg-white p-8 text-center shadow-sm">
+              <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-rose-100 text-rose-500">
+                !
+              </div>
+              <h2 className="font-display text-lg font-semibold text-[#1a1a1a]">
+                That didn&apos;t work
+              </h2>
+              <p className="mt-2 text-sm text-zinc-500">{error}</p>
+              <button
+                onClick={backToStudio}
+                className="mt-6 rounded-full bg-[#1a1a1a] px-5 py-2 text-sm text-white transition hover:scale-[1.02]"
+              >
+                try again
+              </button>
+            </div>
+          )}
+        </section>
+
+        <footer className="flex items-center justify-between py-6 text-[11px] text-zinc-500">
+          <span>2026</span>
+          <span className="lowercase">
+            python · fastapi · sqlite · chromadb · claude + groq · edge-tts
+          </span>
+          <span className="lowercase">micro-learning tools</span>
+        </footer>
+      </div>
     </div>
+  );
+}
+
+function CloverIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden>
+      <g fill="#1a1a1a">
+        <circle cx="12" cy="6.5" r="4.5" />
+        <circle cx="12" cy="17.5" r="4.5" />
+        <circle cx="6.5" cy="12" r="4.5" />
+        <circle cx="17.5" cy="12" r="4.5" />
+      </g>
+    </svg>
   );
 }
 
@@ -194,27 +215,21 @@ function EngineBadge({
   health: HealthResult | null;
   source?: string;
 }) {
+  const chip =
+    "flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-[11px] lowercase text-zinc-600 shadow-sm";
   if (source) {
     const label =
-      source === "claude" ? "Claude" : source === "groq" ? "Groq Llama-3" : "Demo voice";
-    return (
-      <span className="rounded-full border border-hairline bg-white/[0.04] px-3 py-1.5 text-[11px] text-white/55">
-        script by {label}
-      </span>
-    );
+      source === "claude" ? "claude" : source === "groq" ? "groq llama-3" : "demo voice";
+    return <span className={chip}>script by {label}</span>;
   }
-  if (!health) {
-    return (
-      <span className="rounded-full border border-hairline px-3 py-1.5 text-[11px] text-white/40">
-        connecting…
-      </span>
-    );
-  }
+  if (!health) return <span className={chip}>connecting…</span>;
   const online = health.status === "ok";
-  const engine = health.anthropic ? "Claude" : health.groq ? "Groq" : "Demo mode";
+  const engine = health.anthropic ? "claude" : health.groq ? "groq" : "demo mode";
   return (
-    <span className="flex items-center gap-2 rounded-full border border-hairline bg-white/[0.04] px-3 py-1.5 text-[11px] text-white/55">
-      <span className={`h-1.5 w-1.5 rounded-full ${online ? "bg-teal" : "bg-rose-400"}`} />
+    <span className={chip}>
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${online ? "bg-brand-green" : "bg-rose-400"}`}
+      />
       {online ? engine : "backend offline"}
     </span>
   );

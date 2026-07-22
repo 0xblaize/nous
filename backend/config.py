@@ -29,6 +29,13 @@ MEMORY_FILE = STORAGE_DIR / "user_memory.json"  # spaced-repetition record
 for _d in (STORAGE_DIR, AUDIO_DIR, UPLOAD_DIR, CHROMA_DIR):
     _d.mkdir(parents=True, exist_ok=True)
 
+# --- Database ---
+# Empty = local SQLite file under STORAGE_DIR (default, zero setup, but wiped
+# on any host with an ephemeral disk). Set DATABASE_URL to a Postgres
+# connection string (e.g. from Neon, Supabase) to persist accounts/episodes
+# across redeploys on free-tier hosting.
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
 # --- API keys ---
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()

@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
-const LINKS = ["how it works", "your library", "voices", "about nous"];
-
-/** Fixed glass navbar — 12-col grid, clover mark, mobile drawer. */
+/** Fixed glass navbar, 12-col grid, clover mark, mobile drawer.
+ *  Every link goes somewhere real: library opens the studio shelf. */
 export default function Navbar({
   onGetStarted,
   onSignIn,
@@ -16,7 +15,7 @@ export default function Navbar({
   return (
     <header className="fixed top-0 left-0 w-full z-50 py-6 md:py-10 bg-gradient-to-b from-[#f1f1f1]/80 to-transparent backdrop-blur-[2px]">
       <div className="grid grid-cols-12 max-w-7xl mx-auto items-center gap-x-4 px-8 md:px-16 lg:px-20">
-        {/* Left — brand */}
+        {/* Left, brand */}
         <div className="col-span-6 md:col-span-3 flex items-center gap-2.5">
           <CloverIcon />
           <span className="font-display text-lg font-semibold tracking-tight text-[#1a1a1a]">
@@ -24,21 +23,10 @@ export default function Navbar({
           </span>
         </div>
 
-        {/* Center — desktop links */}
-        <nav className="hidden md:col-span-6 md:flex items-center justify-center gap-7">
-          {LINKS.map((l) => (
-            <a
-              key={l}
-              href="#"
-              onClick={(e) => e.preventDefault()}
-              className="text-[13px] lowercase text-zinc-600 transition-colors hover:text-[#1a1a1a]"
-            >
-              {l}
-            </a>
-          ))}
-        </nav>
+        {/* Center intentionally empty, no decorative links */}
+        <div className="hidden md:col-span-6 md:block" />
 
-        {/* Right — actions */}
+        {/* Right, actions */}
         <div className="col-span-6 md:col-span-3 flex items-center justify-end gap-4">
           <button
             onClick={onSignIn}
@@ -84,19 +72,15 @@ export default function Navbar({
             className="mx-6 mt-4 rounded-2xl border border-black/[0.06] bg-white/90 p-5 shadow-lg backdrop-blur-md md:hidden"
           >
             <nav className="flex flex-col gap-4">
-              {LINKS.map((l) => (
-                <a
-                  key={l}
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpen(false);
-                  }}
-                  className="text-sm lowercase text-zinc-700 transition-colors hover:text-[#1a1a1a]"
-                >
-                  {l}
-                </a>
-              ))}
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onSignIn();
+                }}
+                className="text-left text-sm lowercase text-zinc-700 transition-colors hover:text-[#1a1a1a]"
+              >
+                sign in
+              </button>
               <button
                 onClick={() => {
                   setOpen(false);

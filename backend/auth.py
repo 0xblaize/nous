@@ -10,7 +10,6 @@ import base64
 import hashlib
 import hmac
 import json
-import os
 import secrets
 import time
 
@@ -22,9 +21,8 @@ _SECRET_FILE = config.STORAGE_DIR / ".secret_key"
 
 
 def _secret() -> bytes:
-    env = os.getenv("SECRET_KEY", "").strip()
-    if env:
-        return env.encode()
+    if config.SECRET_KEY:
+        return config.SECRET_KEY.encode()
     if _SECRET_FILE.exists():
         return _SECRET_FILE.read_bytes()
     key = secrets.token_bytes(32)
@@ -32,7 +30,7 @@ def _secret() -> bytes:
     return key
 
 
-TOKEN_TTL_SECONDS = 7 * 24 * 3600  # a week — hackathon-friendly
+TOKEN_TTL_SECONDS = config.TOKEN_TTL_DAYS * 24 * 3600
 
 _PBKDF2_ITERATIONS = 200_000
 

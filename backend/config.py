@@ -26,6 +26,28 @@ for _d in (STORAGE_DIR, AUDIO_DIR, UPLOAD_DIR, CHROMA_DIR):
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 
+# --- Auth ---
+SECRET_KEY = os.getenv("SECRET_KEY", "").strip()
+TOKEN_TTL_DAYS = int(os.getenv("TOKEN_TTL_DAYS", "7"))
+MIN_PASSWORD_LENGTH = int(os.getenv("MIN_PASSWORD_LENGTH", "6"))
+ALLOW_SIGNUPS = os.getenv("ALLOW_SIGNUPS", "true").strip().lower() not in (
+    "false",
+    "0",
+    "no",
+)
+
+# --- CORS ---
+# Comma-separated list of browser origins allowed to call this backend.
+# In production set CORS_ORIGINS to your Vercel domain(s), e.g.
+#   CORS_ORIGINS=https://nous.vercel.app,https://nous-yourname.vercel.app
+CORS_ORIGINS = [
+    o.strip()
+    for o in os.getenv(
+        "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+    ).split(",")
+    if o.strip()
+]
+
 # --- Models ---
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-5")
 CLAUDE_FALLBACK_MODEL = os.getenv("CLAUDE_FALLBACK_MODEL", "claude-haiku-4-5")

@@ -45,7 +45,7 @@ def _safe_name(filename: str | None) -> str:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=config.CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -82,11 +82,16 @@ def optional_user(authorization: str = Header(default="")) -> dict | None:
 
 @app.post("/auth/register", response_model=AuthResponse)
 def register(req: RegisterRequest) -> AuthResponse:
+    if not config.ALLOW_SIGNUPS:
+        raise HTTPException(status_code=403, detail="Signups are currently closed.")
     email = req.email.strip().lower()
     if "@" not in email or len(email) < 4:
         raise HTTPException(status_code=422, detail="Enter a valid email address.")
-    if len(req.password) < 6:
-        raise HTTPException(status_code=422, detail="Password must be at least 6 characters.")
+    if len(req.password) < config.MIN_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Password must be at least {config.MIN_PASSWORD_LENGTH} characters.",
+        )
     if db.get_user_by_email(email) is not None:
         raise HTTPException(status_code=409, detail="That email is already registered.")
     user_id = uuid.uuid4().hex[:16]

@@ -13,6 +13,7 @@ import {
   getHealth,
   savedAuth,
   signOut,
+  verifySession,
   type AuthUser,
   type GenerateResult,
   type GenerationProgress,
@@ -61,7 +62,19 @@ export default function App() {
 
   useEffect(() => {
     getHealth().then(setHealth);
-    setUser(savedAuth());
+    const saved = savedAuth();
+    if (!saved) return;
+    // One-time signup, then the session should just come back. On return
+    // visits (landing or a stale /login), skip straight into the studio
+    // instead of asking to sign in again.
+    setUser(saved);
+    verifySession().then((valid) => {
+      if (!valid) {
+        setUser(null);
+        return;
+      }
+      setViewState((v) => (v === "landing" || v === "auth" ? "studio" : v));
+    });
   }, []);
 
   const enter = (topic?: string) => {

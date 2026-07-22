@@ -62,11 +62,20 @@ function authHeaders(): Record<string, string> {
 }
 
 async function authPost(path: string, body: object): Promise<AuthUser> {
-  const res = await fetch(`${API}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    // fetch throws (not a 4xx/5xx) on CORS blocks, DNS failures, or a
+    // free-tier backend that's asleep and never answers the socket.
+    throw new Error(
+      "Could not reach the server. If this is a fresh deploy, it may still be waking up, wait a few seconds and try again."
+    );
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.detail ?? `Request failed (${res.status})`);
   const user = data as AuthUser;
@@ -79,6 +88,27 @@ export const register = (email: string, password: string) =>
 export const login = (email: string, password: string) =>
   authPost("/auth/login", { email, password });
 export const signOut = () => storeAuth(null);
+
+/**
+ * Check the saved session against the backend. Returns true when still valid.
+ * Clears the stored token on a definite 401 (expired, or the server no longer
+ * knows the account) so the UI never shows a half-working session.
+ */
+export async function verifySession(): Promise<boolean> {
+  const u = savedAuth();
+  if (!u) return false;
+  try {
+    const res = await fetch(`${API}/auth/me`, { headers: authHeaders() });
+    if (res.status === 401) {
+      storeAuth(null);
+      return false;
+    }
+    return res.ok;
+  } catch {
+    // Network blip (or the server is waking up): keep the session optimistic.
+    return true;
+  }
+}
 
 export interface EpisodeSummary {
   id: string;

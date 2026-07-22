@@ -13,6 +13,7 @@ export default function AuthPanel({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [waking, setWaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const submit = async () => {
@@ -22,16 +23,31 @@ export default function AuthPanel({
     }
     setBusy(true);
     setError(null);
+    setWaking(false);
+    const call = () =>
+      mode === "login" ? login(email.trim(), password) : register(email.trim(), password);
     try {
-      const user =
-        mode === "login"
-          ? await login(email.trim(), password)
-          : await register(email.trim(), password);
+      let user: AuthUser;
+      try {
+        user = await call();
+      } catch (first) {
+        // Free-tier backends (Render, etc.) sleep when idle and miss the
+        // first request while waking up. Retry once before giving up.
+        const msg = first instanceof Error ? first.message : "";
+        if (msg.includes("waking up")) {
+          setWaking(true);
+          await new Promise((r) => setTimeout(r, 4000));
+          user = await call();
+        } else {
+          throw first;
+        }
+      }
       onDone(user);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setBusy(false);
+      setWaking(false);
     }
   };
 
@@ -76,6 +92,9 @@ export default function AuthPanel({
       </div>
 
       {error && <p className="mt-3 text-sm text-rose-500">{error}</p>}
+      {waking && !error && (
+        <p className="mt-3 text-sm text-zinc-500">waking up the server, one more moment...</p>
+      )}
 
       <button
         onClick={submit}

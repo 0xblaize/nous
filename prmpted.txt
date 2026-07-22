@@ -1,0 +1,75 @@
+NOUS — project notes
+=====================
+
+NAME
+Nous
+
+WHAT IT IS
+A zero-cost micro-learning podcast generator. You upload a document (PDF/text)
+or record a voice note, and Nous turns it into a short two-host conversational
+podcast episode — HOST_A (the Expert) and HOST_B (the Learner) — that talks
+you through the material like a real podcast. It also remembers what you got
+confused by last time and brings it up again in the next episode (spaced
+repetition), so it's built for actually learning, not just listening once.
+
+THE ORIGINAL PROMPT (what was asked for)
+"Build a zero-cost architecture pipeline: a user uploads a PDF or records a
+voice note, and the system produces a short two-host conversational audio
+episode using RAG over the document plus lightweight spaced-repetition memory
+of what confused the user last time. Backend in Python/FastAPI, frontend in
+Next.js/React. Ingest PDFs and transcribe voice with a free/cheap engine.
+Use a local vector store for retrieval. Generate the two-host dialogue script
+with an LLM (Claude primary, a free fallback model as backup, plus a
+no-API-key stub so the app still runs with zero keys). Turn the script into
+audio with a free text-to-speech engine, one voice per host, stitched into a
+single MP3. Make the UI cinematic, calming, dark, aurora-style, glassmorphic —
+the kind of interface that's genuinely relaxing to look at. Everything should
+stay inside the project folder, no pushing code, no outside access."
+
+Later requests built on top of that:
+- add a real database and real auth (signup/login), not fake demo data
+- add a WebSocket so long-running generation streams live progress instead of
+  one long stuck HTTP request
+- add a microphone option to speak notes directly instead of only uploading
+- switch the whole frontend to Vite + React + Tailwind + motion/react, with a
+  specific polished light-themed landing page (video hero, glass navbar,
+  search pill, "get started" flow into the app)
+- make the two-host audio sound human instead of robotic (natural TTS voices,
+  natural pacing, tighter gaps between lines, no more spelled-out "umm"
+  filler words breaking the speech)
+- add persistent hosting-friendly storage (Neon Postgres) so accounts and
+  episodes survive redeploys on free hosting instead of disappearing
+- reuse the site's own clover logo mark as the browser favicon
+
+STACK
+Backend:
+  - Python + FastAPI (REST + WebSocket)
+  - SQLite locally / Postgres (Neon) in production, via a single db.py that
+    supports both
+  - PBKDF2 password hashing + HMAC-signed login tokens (stdlib only, no
+    extra auth framework)
+  - pypdf for PDF text extraction
+  - Groq Whisper for voice-note transcription
+  - ChromaDB as the local vector store for retrieval (RAG)
+  - Claude API (primary) + Groq Llama-3 (fallback) + a built-in offline stub
+    script, so the app works even with zero API keys
+  - edge-tts + pydub for two-voice text-to-speech, stitched into one MP3
+  - imageio-ffmpeg bundled so no system ffmpeg install is needed
+
+Frontend:
+  - Vite + React + TypeScript
+  - Tailwind CSS
+  - motion/react for animation
+  - A light, glass-panel design system (video hero landing page, glass
+    navbar, upload/mic studio, live-progress generating screen, audio player
+    with a reactive waveform, episode library)
+
+Hosting:
+  - Frontend on Vercel
+  - Backend on Render
+  - Database on Neon (Postgres, free tier, persists across redeploys)
+
+ONE ENV FILE
+Everything (API keys, model choices, TTS voices, auth settings, CORS,
+database URL, frontend API base) lives in a single .env at the project root,
+read by both the backend and the frontend.

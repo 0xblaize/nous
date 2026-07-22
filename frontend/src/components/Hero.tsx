@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "motion/react";
 
 const VIDEO_URL =
@@ -8,8 +8,14 @@ const VIDEO_URL =
  * Landing hero — full-bleed video anchored on #EDEEF5. Copy speaks to what
  * Nous is: any document or voice note becomes a two-host podcast episode.
  */
-export default function Hero({ onEnter }: { onEnter: (topic?: string) => void }) {
+export default function Hero({
+  onEnter,
+}: {
+  onEnter: (topic?: string, file?: File) => void;
+}) {
   const [ask, setAsk] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   return (
     <section className="relative min-h-[110vh] sm:min-h-[140vh] w-full flex flex-col items-center justify-start overflow-hidden bg-bg-base">
@@ -70,14 +76,43 @@ export default function Hero({ onEnter }: { onEnter: (topic?: string) => void })
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                onEnter(ask.trim() || undefined);
+                onEnter(ask.trim() || undefined, file ?? undefined);
               }}
-              className="bg-white rounded-[6px] border border-black/[0.05] p-1 pl-4 flex items-center shadow-sm"
+              className="bg-white rounded-[6px] border border-black/[0.05] p-1 pl-2 flex items-center gap-1 shadow-sm"
             >
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pdf,.txt,.md,.mp3,.wav,.m4a,.ogg,.webm"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                aria-label="Attach a document or audio file"
+                title={file ? file.name : "Attach a document"}
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition-colors ${
+                  file ? "bg-brand-green/40 text-[#1a1a1a]" : "text-zinc-400 hover:bg-black/[0.04] hover:text-zinc-700"
+                }`}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l8.49-8.48a3.5 3.5 0 0 1 4.95 4.95l-8.49 8.48a2 2 0 0 1-2.83-2.83l7.78-7.77" />
+                </svg>
+              </button>
               <input
                 value={ask}
                 onChange={(e) => setAsk(e.target.value)}
-                placeholder="What do you want to learn tonight?"
+                placeholder={file ? file.name : "What do you want to learn tonight?"}
                 className="flex-1 bg-transparent text-sm text-zinc-900 placeholder-zinc-400 outline-none"
               />
               <button

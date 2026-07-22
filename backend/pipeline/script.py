@@ -22,14 +22,14 @@ RULES FOR WRITING:
 2. Write numbers as words (e.g., write "five hundred" not "500").
 3. Address the previous user confusion in the first four lines of dialogue.
 4. HOST_B must interrupt HOST_A at least once to clarify a complex point.
-5. Keep sentences short. Long sentences cause TTS engines to sound robotic.
-6. Phonetic Fillers. To make the hosts sound human, deliberately spell out conversational fillers. Use words like "Umm," "Right," "Exactly," and "Wait." End trailing thoughts with commas, not periods, to force the TTS engine to pause naturally.
+5. Keep sentences short and write the way people actually talk: contractions (it's, that's, you're), varied sentence length, natural rhythm. Do not spell out filler words like "Umm" or "Uh" as their own token, and do not end lines with a trailing comma just to force a pause, a text-to-speech engine reads those literally and it sounds stiff. Let normal punctuation (periods, question marks) carry the pacing instead.
+6. Vary how each line opens, avoid starting every HOST_B line the same way (not every line needs "Right," or "Exactly,").
 
 OUTPUT SCHEMA:
 You must output ONLY a raw JSON array. Do not wrap it in code blocks. Do not add introductory text.
 
 [
-  { "speaker": "HOST_A", "text": "Welcome back. Today we are breaking down..." },
+  { "speaker": "HOST_A", "text": "Welcome back. Today we're breaking down..." },
   { "speaker": "HOST_B", "text": "Before we start, yesterday you mentioned..." }
 ]"""
 
@@ -111,16 +111,16 @@ def _stub(ctx: RetrievedContext) -> list[dict]:
     confusion = ctx.prior_confusion[0] if ctx.prior_confusion else "the last idea we covered"
     topic = ctx.topic or "today's material"
     return [
-        {"speaker": "HOST_A", "text": f"Welcome back to Nous. Today we are breaking down {topic},"},
-        {"speaker": "HOST_B", "text": f"Right, and before we start, yesterday you mentioned {confusion} was fuzzy for me,"},
-        {"speaker": "HOST_A", "text": "Exactly, so let us clear that up first. Think of it as a single thread running through everything,"},
-        {"speaker": "HOST_B", "text": "Wait, umm, a thread how,"},
-        {"speaker": "HOST_A", "text": "Good interruption. A thread you can pull to unravel the whole idea. One concept leads to the next,"},
-        {"speaker": "HOST_B", "text": "Oh, so it is like following a trail of breadcrumbs, one crumb at a time,"},
-        {"speaker": "HOST_A", "text": "That is the perfect analogy. Keep that picture in your head as we go deeper,"},
-        {"speaker": "HOST_B", "text": "Got it. Umm, okay, I am ready. Walk me through the first crumb,"},
-        {"speaker": "HOST_A", "text": "Here it is. This is the demonstration voice for Nous, running with no keys yet. Add your keys to hear the real lesson,"},
-        {"speaker": "HOST_B", "text": "Exactly. Thanks everyone, we will see you in the next episode,"},
+        {"speaker": "HOST_A", "text": f"Welcome back to Nous. Today we're breaking down {topic}."},
+        {"speaker": "HOST_B", "text": f"Before we start, yesterday you mentioned {confusion} was a bit fuzzy for me."},
+        {"speaker": "HOST_A", "text": "Let's clear that up first. Think of it as a single thread running through everything."},
+        {"speaker": "HOST_B", "text": "Wait, a thread? What do you mean by that exactly?"},
+        {"speaker": "HOST_A", "text": "Good question. It's something you can pull to unravel the whole idea. One concept leads straight into the next."},
+        {"speaker": "HOST_B", "text": "Oh, so it's like following a trail of clues, one at a time."},
+        {"speaker": "HOST_A", "text": "That's the perfect way to picture it. Keep that in mind as we go deeper."},
+        {"speaker": "HOST_B", "text": "Got it, I'm ready. Walk me through the first part."},
+        {"speaker": "HOST_A", "text": "Here it is. This is the demo voice for Nous, running with no keys yet. Add your keys to hear the real lesson."},
+        {"speaker": "HOST_B", "text": "Thanks for listening. We'll see you in the next episode."},
     ]
 
 

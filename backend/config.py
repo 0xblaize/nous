@@ -12,8 +12,15 @@ PROJECT_ROOT = BASE_DIR.parent
 load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv(BASE_DIR / ".env", override=True)
 
-# --- Storage paths (all inside the repo) ---
-STORAGE_DIR = BASE_DIR / "storage"
+# --- Storage paths ---
+# Defaults to a folder inside the repo. On a host with an ephemeral
+# filesystem (Render, Railway free tiers), every redeploy wipes this unless
+# STORAGE_DIR is pointed at a mounted persistent disk, e.g. on Render:
+#   Dashboard -> service -> Disks -> Add Disk -> mount path /var/data
+#   then set STORAGE_DIR=/var/data
+# Without a persistent disk, accounts/episodes are lost on each deploy —
+# that's a hosting/infra choice, not an app bug.
+STORAGE_DIR = Path(os.getenv("STORAGE_DIR", str(BASE_DIR / "storage")))
 AUDIO_DIR = STORAGE_DIR / "audio"
 UPLOAD_DIR = STORAGE_DIR / "uploads"
 CHROMA_DIR = STORAGE_DIR / "chroma"
@@ -55,8 +62,10 @@ GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_WHISPER_MODEL = os.getenv("GROQ_WHISPER_MODEL", "whisper-large-v3")
 
 # --- TTS voices ---
-HOST_A_VOICE = os.getenv("HOST_A_VOICE", "en-US-GuyNeural")   # Expert (male)
-HOST_B_VOICE = os.getenv("HOST_B_VOICE", "en-US-JennyNeural")  # Learner (female)
+# Andrew/Ava are newer, warmer neural voices; Guy/Jenny (the old defaults)
+# read noticeably flatter and more robotic on longer conversational lines.
+HOST_A_VOICE = os.getenv("HOST_A_VOICE", "en-US-AndrewNeural")  # Expert (male)
+HOST_B_VOICE = os.getenv("HOST_B_VOICE", "en-US-AvaNeural")  # Learner (female)
 
 # --- Pipeline knobs ---
 CHUNK_WORDS = 500

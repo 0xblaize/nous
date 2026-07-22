@@ -4,16 +4,28 @@ interface UploadCardProps {
   onSubmit: (file: File, topic: string) => void;
   disabled?: boolean;
   initialTopic?: string;
+  initialFile?: File | null;
 }
 
 const ACCEPT = ".pdf,.txt,.md,.mp3,.wav,.m4a,.ogg,.webm";
 
-export default function UploadDrop({ onSubmit, disabled, initialTopic }: UploadCardProps) {
-  const [file, setFile] = useState<File | null>(null);
+export default function UploadDrop({
+  onSubmit,
+  disabled,
+  initialTopic,
+  initialFile,
+}: UploadCardProps) {
+  const [file, setFile] = useState<File | null>(initialFile ?? null);
   const [topic, setTopic] = useState(initialTopic ?? "");
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Picking a file on the landing page happens before this component mounts,
+  // so sync it in if it arrives (or changes) after the initial render.
+  useEffect(() => {
+    if (initialFile) setFile(initialFile);
+  }, [initialFile]);
 
   // --- mic recording (MediaRecorder -> webm File, transcribed server-side) ---
   const [recording, setRecording] = useState(false);

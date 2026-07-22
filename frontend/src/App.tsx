@@ -59,6 +59,7 @@ export default function App() {
   const [health, setHealth] = useState<HealthResult | null>(null);
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [prefillTopic, setPrefillTopic] = useState("");
+  const [prefillFile, setPrefillFile] = useState<File | null>(null);
 
   useEffect(() => {
     getHealth().then(setHealth);
@@ -77,8 +78,9 @@ export default function App() {
     });
   }, []);
 
-  const enter = (topic?: string) => {
+  const enter = (topic?: string, file?: File) => {
     if (topic) setPrefillTopic(topic);
+    if (file) setPrefillFile(file);
     setView(savedAuth() ? "studio" : "auth");
   };
 
@@ -181,7 +183,7 @@ export default function App() {
                   What shall we learn <span className="text-[#8e8e8e]">tonight?</span>
                 </h1>
               </div>
-              <UploadDrop onSubmit={handleSubmit} initialTopic={prefillTopic} />
+              <UploadDrop onSubmit={handleSubmit} initialTopic={prefillTopic} initialFile={prefillFile} />
               {user && <EpisodeShelf onOpen={openEpisode} refreshKey={view} />}
             </>
           )}

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import random
 from pathlib import Path
 from typing import Awaitable, Callable
 
@@ -22,15 +23,28 @@ class AudioSynthesisError(RuntimeError):
 # An async progress hook: on_progress(done, total) is awaited after each line.
 ProgressHook = Callable[[int, int], Awaitable[None]]
 
+# Slight rate/pitch offsets per host so the two voices feel distinct and less
+# like a flat text-to-speech reading, without sounding sped up or slurred.
+_VOICE_TUNING = {
+    "HOST_A": {"rate": "-4%", "pitch": "-2Hz"},
+    "HOST_B": {"rate": "-2%", "pitch": "+3Hz"},
+}
 
-async def _tts_bytes(text: str, voice: str, attempts: int = 4) -> bytes:
+
+async def _tts_bytes(text: str, voice: str, speaker: str, attempts: int = 4) -> bytes:
     """Synthesize one line and return the MP3 bytes (avoids Windows file locks)."""
     import edge_tts
 
+    tuning = _VOICE_TUNING.get(speaker, {})
     last_exc: Exception | None = None
     for attempt in range(attempts):
         try:
-            communicate = edge_tts.Communicate(text, voice)
+            communicate = edge_tts.Communicate(
+                text,
+                voice,
+                rate=tuning.get("rate", "+0%"),
+                pitch=tuning.get("pitch", "+0Hz"),
+            )
             buf = bytearray()
             async for chunk in communicate.stream():
                 if chunk["type"] == "audio":
@@ -51,19 +65,22 @@ async def _synthesize_async(
 ) -> None:
     from pydub import AudioSegment
 
-    combined = AudioSegment.silent(duration=300)
-    gap = AudioSegment.silent(duration=250)  # small breath between lines
+    combined = AudioSegment.silent(duration=120)
     total = len(dialogue)
 
     for i, line in enumerate(dialogue, start=1):
-        voice = (
-            config.HOST_A_VOICE
-            if line["speaker"] == "HOST_A"
-            else config.HOST_B_VOICE
-        )
-        mp3_bytes = await _tts_bytes(line["text"], voice)
+        speaker = line["speaker"]
+        voice = config.HOST_A_VOICE if speaker == "HOST_A" else config.HOST_B_VOICE
+        mp3_bytes = await _tts_bytes(line["text"], voice, speaker)
         segment = AudioSegment.from_file(io.BytesIO(mp3_bytes), format="mp3")
-        combined += segment + gap
+        # Keep the gap between lines short and tight, a real back-and-forth
+        # conversation has almost no dead air. A touch more room on a speaker
+        # change stops words from running together; same speaker continuing
+        # gets barely a breath.
+        next_speaker = dialogue[i]["speaker"] if i < total else None
+        turn_changes = next_speaker is not None and next_speaker != speaker
+        gap_ms = random.randint(70, 110) if turn_changes else random.randint(20, 50)
+        combined += segment + AudioSegment.silent(duration=gap_ms)
         if on_progress is not None:
             await on_progress(i, total)
 

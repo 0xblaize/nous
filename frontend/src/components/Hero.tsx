@@ -83,7 +83,7 @@ export default function Hero({
               <input
                 ref={fileRef}
                 type="file"
-                accept=".pdf,.txt,.md,.mp3,.wav,.m4a,.ogg,.webm"
+                accept=".pdf,.html,.htm,.txt,.md,.mp3,.wav,.m4a,.ogg,.webm"
                 className="hidden"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
@@ -134,9 +134,9 @@ export default function Hero({
                 </svg>
               </button>
             </form>
-            <p className="mt-3 text-[12px] text-zinc-500">
-              drop a PDF or speak a voice note. two calm hosts talk you through
-              it, and remember what confused you for next time.
+            <p className="mt-3 text-[13px] leading-relaxed text-zinc-700">
+              Drop a PDF, HTML page, or speak a voice note. Two calm hosts talk
+              you through it, and remember what confused you for next time.
             </p>
           </motion.div>
         </div>

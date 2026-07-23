@@ -1,6 +1,9 @@
-"""Ingestion: extract raw text from a PDF (pypdf) or a voice note (Groq Whisper)."""
+"""Ingestion: extract raw text from a PDF, an HTML page, or a voice note
+(Groq Whisper)."""
 from __future__ import annotations
 
+import re
+from html.parser import HTMLParser
 from pathlib import Path
 
 import config
@@ -12,6 +15,62 @@ def _extract_pdf(path: Path) -> str:
     reader = PdfReader(str(path))
     parts = [page.extract_text() or "" for page in reader.pages]
     return "\n".join(parts).strip()
+
+
+# Elements whose entire content should be dropped, not just the tags.
+_HTML_SKIP_TAGS = {"script", "style", "noscript", "template", "svg"}
+# Block-level elements — closing one should read like a paragraph break, so
+# the extracted text isn't one huge run-on line.
+_HTML_BLOCK_TAGS = {
+    "p", "div", "section", "article", "header", "footer", "main", "aside",
+    "li", "tr", "br", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre",
+}
+
+
+class _HTMLTextExtractor(HTMLParser):
+    """Strip tags/scripts/styles from an HTML document, keep the readable
+    text. Stdlib only — avoids pulling in a parsing library (bs4/lxml) just
+    for this, which matters on this project's flaky pip network."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._chunks: list[str] = []
+        self._skip_depth = 0
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag in _HTML_SKIP_TAGS:
+            self._skip_depth += 1
+        elif tag in _HTML_BLOCK_TAGS:
+            self._chunks.append("\n")
+
+    def handle_startendtag(self, tag: str, attrs) -> None:
+        if tag in _HTML_BLOCK_TAGS:
+            self._chunks.append("\n")
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in _HTML_SKIP_TAGS and self._skip_depth > 0:
+            self._skip_depth -= 1
+        elif tag in _HTML_BLOCK_TAGS:
+            self._chunks.append("\n")
+
+    def handle_data(self, data: str) -> None:
+        if self._skip_depth == 0 and data.strip():
+            self._chunks.append(data)
+
+    def text(self) -> str:
+        joined = "".join(self._chunks)
+        # Collapse runs of whitespace but keep paragraph breaks.
+        joined = re.sub(r"[ \t]+", " ", joined)
+        joined = re.sub(r"\n\s*\n+", "\n\n", joined)
+        return joined.strip()
+
+
+def _extract_html(path: Path) -> str:
+    raw = path.read_text(encoding="utf-8", errors="ignore")
+    parser = _HTMLTextExtractor()
+    parser.feed(raw)
+    parser.close()
+    return parser.text()
 
 
 def _transcribe_audio(path: Path) -> str:
@@ -32,15 +91,18 @@ def _transcribe_audio(path: Path) -> str:
 
 
 PDF_EXTS = {".pdf"}
+HTML_EXTS = {".html", ".htm"}
 AUDIO_EXTS = {".mp3", ".wav", ".m4a", ".ogg", ".webm", ".flac", ".mp4"}
 
 
 def extract(path: str | Path) -> str:
-    """Return raw text for a supported upload (PDF or audio)."""
+    """Return raw text for a supported upload (PDF, HTML, or audio)."""
     path = Path(path)
     ext = path.suffix.lower()
     if ext in PDF_EXTS:
         text = _extract_pdf(path)
+    elif ext in HTML_EXTS:
+        text = _extract_html(path)
     elif ext in AUDIO_EXTS:
         text = _transcribe_audio(path)
     else:

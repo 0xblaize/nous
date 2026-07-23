@@ -7,7 +7,7 @@ interface UploadCardProps {
   initialFile?: File | null;
 }
 
-const ACCEPT = ".pdf,.txt,.md,.mp3,.wav,.m4a,.ogg,.webm";
+const ACCEPT = ".pdf,.html,.htm,.txt,.md,.mp3,.wav,.m4a,.ogg,.webm";
 
 export default function UploadDrop({
   onSubmit,
@@ -146,10 +146,10 @@ export default function UploadDrop({
         ) : (
           <>
             <p className="text-sm font-medium text-[#1a1a1a]">
-              Drop a PDF or voice note
+              Drop a PDF, HTML page, or voice note
             </p>
             <p className="mt-1 text-xs text-zinc-500">
-              PDF, text, or audio. Click to browse
+              PDF, HTML, text, or audio. Click to browse
             </p>
           </>
         )}
